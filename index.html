@@ -120,22 +120,18 @@
         </div>
     }
 
-    class TimeboxEditor extends React.Component {
-        handleTitlecChanged = (event) => {
-            this.props.onTitleChanged(event);
-        }
-        handleTotalTimeInMinutesChanged = (event) => {
-            this.props.onTotalTimeInMinutesChanged(event);
-        }
-        render() {
-            const { title, totalTimeInMinutes } = this.props;
+    function TimeboxEditor(props) {
+        const { title, 
+        totalTimeInMinutes,
+        onTitleChanged,
+        onTotalTimeInMinutesChanged } = props;
         return (
             <div className="TimeboxEditor">
             <label> Co robisz?
             <input
                 disabled={false} 
                 value={title} 
-                onChange={this.handleTitlecChanged}
+                onChange={onTitleChanged}
                 type="text" 
             />
             </label><br />
@@ -143,14 +139,13 @@
             <input 
                 disabled={false} 
                 value={totalTimeInMinutes}
-                onChange={this.handleTotalTimeInMinutesChanged}
+                onChange={onTotalTimeInMinutesChanged}
                 type="number" 
             />
             </label><br />
             <button disabled={false}>Zacznij</button>
         </div>
         )
-        }
     }
 
     class Timebox extends React.Component {
