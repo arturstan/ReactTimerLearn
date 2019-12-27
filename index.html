@@ -88,19 +88,69 @@
 
     // ReactDOM.render(element, rootElement);
 
+    class EditableTimebox extends React.Component {
+        state = {
+            title: "Uczę się przenosić stan w górę...",
+            totalTimeInMinutes: 25
+        }
+        handleTitleChanged = (event) => {
+            this.setState({ title: event.target.value });
+        }
+        handleTotalTimeInMinutesChanged = (event) => {
+            this.setState({ totalTimeInMinutes: event.target.value });
+        }
+        render() {
+            const { title, totalTimeInMinutes } = this.state;
+            return (
+                <>
+                    <TimeboxEditor 
+                    title={title}
+                    totalTimeInMinutes={totalTimeInMinutes}
+                    onTitleChanged={this.handleTitleChanged}
+                    onTotalTimeInMinutesChanged={this.handleTotalTimeInMinutesChanged}
+                    />
+                    <Timebox title={title} totalTimeInMinutes={totalTimeInMinutes} />
+                </>
+            ) 
+        }
+    }
     function App() {
         return <div className="App">
-                <TimeboxEditor />
-                <Timebox />
+            <EditableTimebox />
         </div>
     }
 
-    function TimeboxEditor() {
-        return         <div className="TimeboxEditor inactive">
-            <label> Co robisz?<input disabled value="Uczę się..." type="text" /></label><br />
-            <label>Ile minut?<input disabled value="25" type="number" /></label><br />
-            <button disabled>Zacznij</button>
+    class TimeboxEditor extends React.Component {
+        handleTitlecChanged = (event) => {
+            this.props.onTitleChanged(event);
+        }
+        handleTotalTimeInMinutesChanged = (event) => {
+            this.props.onTotalTimeInMinutesChanged(event);
+        }
+        render() {
+            const { title, totalTimeInMinutes } = this.props;
+        return (
+            <div className="TimeboxEditor">
+            <label> Co robisz?
+            <input
+                disabled={false} 
+                value={title} 
+                onChange={this.handleTitlecChanged}
+                type="text" 
+            />
+            </label><br />
+            <label>Ile minut?
+            <input 
+                disabled={false} 
+                value={totalTimeInMinutes}
+                onChange={this.handleTotalTimeInMinutesChanged}
+                type="number" 
+            />
+            </label><br />
+            <button disabled={false}>Zacznij</button>
         </div>
+        )
+        }
     }
 
     class Timebox extends React.Component {
@@ -163,13 +213,14 @@
         }
         render() {       
             const { isPaused, isRunning, pauseCount, elapsedTimeInSeconds } = this.state;
-            const totalTimeInSeconds = 30*60;
+            const { title, totalTimeInMinutes } = this.props;
+            const totalTimeInSeconds = totalTimeInMinutes*60;
             const timeLeftInSeconds = totalTimeInSeconds - elapsedTimeInSeconds;
             const minutesLeft = Math.floor(timeLeftInSeconds / 60);
             const secondsLeft = Math.floor(timeLeftInSeconds%60);
             const progressInPercent = (elapsedTimeInSeconds / totalTimeInSeconds) * 100.0;
             return <div className="Timebox">
-                <h1>Uczę się...</h1>
+                <h1>{title}</h1>
                 <Clock minutes = {minutesLeft} seconds = {secondsLeft} className={ isPaused ? "inactive" : "" } />
                 <ProgressBar percent = {progressInPercent} className={ isPaused ? "inactive" : "" } />            
                 <button onClick = { this.handleStart } disabled={isRunning}>Start</button>
