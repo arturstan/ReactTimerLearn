@@ -88,6 +88,12 @@
 
     // ReactDOM.render(element, rootElement);
 
+    function App() {
+        return <div className="App">
+            <EditableTimebox />
+        </div>
+    }
+    
     class EditableTimebox extends React.Component {
         state = {
             title: "Uczę się przenosić stan w górę...",
@@ -127,11 +133,6 @@
                 </>
             ) 
         }
-    }
-    function App() {
-        return <div className="App">
-            <EditableTimebox />
-        </div>
     }
 
     function TimeboxEditor(props) {
