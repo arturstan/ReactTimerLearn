@@ -1,6 +1,6 @@
-<!DOCTYPE html>
 <html lang="en">
-<head>
+    <head>
+        <!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -84,141 +84,46 @@
         </div>
     }
 
-    class CurrentTimebox extends React.Component {
-        constructor(props){
-            super(props);
-            this.state = {
-                isRunning: false,
-                isPaused: false,
-                pauseCount: 0,
-                elapsedTimeInSeconds: 0
-            }
-            this.handleStart=this.handleStart.bind(this);
-            this.handleStop=this.handleStop.bind(this);
-            this.togglePause=this.togglePause.bind(this);
-        }
-        handleStart(event) { 
-            this.setState({
-                isRunning: true
-            })
-            this.startTimer();
-        }
-        handleStop(event) { 
-            this.setState({
-                isRunning: false,
-                isPaused: false,
-                pauseCount: 0,
-                elapsedTimeInSeconds: 0
-            })
-            this.stopTimer();
-        }
-        startTimer(){
-            this.intervalId = window.setInterval(
-                () => {
-                    this.setState(
-                        (prevState) => ({elapsedTimeInSeconds: prevState.elapsedTimeInSeconds + 0.1})
-                    )
-                },
-                100
-            )
-        }
-        stopTimer() {
-            window.clearInterval(this.intervalId);
-        }
-        togglePause(){
-            this.setState(
-                function(prevState){
-                    const isPaused = !prevState.isPaused;
-                    if(isPaused)
-                    {
-                        this.stopTimer();
-                    }else {
-                        this.startTimer();
-                    }
-                    return {
-                        isPaused,
-                        pauseCount: isPaused ? prevState.pauseCount + 1 : prevState.pauseCount
-                    }
-                }                
-            )
-        }
-        render() {       
-            const { isPaused, isRunning, pauseCount, elapsedTimeInSeconds } = this.state;
-            const { title, totalTimeInMinutes, isEditable, onEdit } = this.props;
-            const totalTimeInSeconds = totalTimeInMinutes*60;
-            const timeLeftInSeconds = totalTimeInSeconds - elapsedTimeInSeconds;
-            const minutesLeft = Math.floor(timeLeftInSeconds / 60);
-            const secondsLeft = Math.floor(timeLeftInSeconds%60);
-            const progressInPercent = (elapsedTimeInSeconds / totalTimeInSeconds) * 100.0;
-            return <div className={`CurrentTimebox ${isEditable ? "inactive" : ""}`}>
-                <h1>{title}</h1>
-                <Clock minutes = {minutesLeft} seconds = {secondsLeft} className={ isPaused ? "inactive" : "" } />
-                <ProgressBar percent = {progressInPercent} className={ isPaused ? "inactive" : "" } />
-                <button onClick = { onEdit } disabled={isEditable}>Edytuj</button>
-                <button onClick = { this.handleStart } disabled={isRunning}>Start</button>
-                <button onClick = { this.handleStop } disabled={!isRunning}>Stop</button>
-                <button onClick = { this.togglePause } disabled={!isRunning}>{isPaused ? "Wznów" : "Pauzuj"}</button>
-                Liczba przerw: {pauseCount}
-            </div>
-        }
-
-    }
-
-    function Clock({ className = "", minutes = 16, seconds = 54}){
-        return <h2 className={ "Clock " + className } >Pozostało {minutes}:{seconds}</h2>
-    }
-
-    function ProgressBar({ className = "", percent = 90 }){
-        return <div className={ "ProgressBar " + className } >
-                <div style={{width: `${percent}%`}}></div>
-            </div>
-
-    }
-
-    class TimeboxCreator extends React.Component {
-        constructor(props){
-            super(props);
-            this.titleInput = React.createRef();
-            this.timeInMinutesInput = React.createRef();
-        }
-
-        handleSubmit = (event) => {
-            event.preventDefault();
-            this.props.onCreate({ 
-                id: uuid.v4(), 
-                title: this.titleInput.current.value, 
-                totalTimeInMinutes: this.timeInMinutesInput.current.value 
-            });
-            this.titleInput.current.value = "";
-            this.timeInMinutesInput.current.value = "";
-        }
-        render() {
-            return (
-                <form onSubmit={this.handleSubmit} className="TimeboxCreator">
-                <label> Co robisz?
-                <input
-                    ref={this.titleInput}
-                    type="text" 
-                />
-                </label><br />
-                <label>Ile minut?
-                <input 
-                    ref={this.timeInMinutesInput}
-                    type="number" 
-                />
-                </label><br />
-                <button>Dodaj timebox</button>
-            </form>
-            )
-        }
-    }
-
-    function Timebox ({ title, totalTimeInMinutes, onDelete, onEdit }) {
+    function TimeboxEditor(props) {
+        const { title, 
+        totalTimeInMinutes,
+        onTitleChanged,
+        onTotalTimeInMinutesChanged,
+        onConfirm,
+        onCancel,
+        isEdit } = props;
         return (
-            <div className="Timebox">
+            <div className="TimeboxEditor">
+            <label> Co robisz?
+            <input
+                value={title} 
+                onChange={onTitleChanged}
+                type="text" 
+            />
+            </label><br />
+            <label>Ile minut?
+            <input 
+                value={totalTimeInMinutes}
+                onChange={onTotalTimeInMinutesChanged}
+                type="number" 
+            />
+            </label><br />
+            <button onClick={onCancel} disabled={!isEdit}>
+                Anuluj
+            </button>
+            <button onClick={onConfirm}>
+                {isEdit ? "Zaktualizuj" : "Dodaj nowy" }
+            </button>
+        </div>
+        )
+    }
+
+    function Timebox ({ title, totalTimeInMinutes, onDelete, onStartEdit, isEdit }) {
+        return (
+            <div className={`Timebox ${isEdit ? "inactive" : ""}`}>
                 <h3>{title} - {totalTimeInMinutes} min.</h3>
                 <button onClick={onDelete}>Usuń</button>
-                <button onClick={onEdit}>Edytuj</button>
+                <button onClick={onStartEdit}>Edytuj</button>
             </div>
         )
     }
@@ -228,8 +133,12 @@
             timeboxes: [
                 { id: uuid.v4(), title: "Uczę się komponentów", totalTimeInMinutes: 30 },
                 { id: uuid.v4(), title: "Uczę się list", totalTimeInMinutes: 15 },
-                { id: uuid.v4(), title: "Uczę się formularzy", totalTimeInMinutes: 25 }
-            ]
+                { id: uuid.v4(), title: "Uczę się formularzy", totalTimeInMinutes: 25 },                
+            ],
+            isEditableTimebox: false,
+            idEditingTimebox: null,
+            titleEditing: "",
+            totalTimeInMinutesEditing: ""
         }
 
         addTimebox = (timebox) => {
@@ -247,27 +156,68 @@
             }) 
         }
         updateTimebox = (indexToUpdate, updatedTimebox) => {
-            console.log("Edit: ", indexToUpdate);
+            console.log("updateTimebox: ", indexToUpdate, updatedTimebox);
             this.setState(prevState => {
-                const timeboxes = prevState.timeboxes.map((timebox, index) =>
-                    index === indexToUpdate ? updatedTimebox : timebox
+                const timeboxes = prevState.timeboxes.map((timebox) =>
+                    timebox.id === indexToUpdate ? updatedTimebox : timebox
                 )
                 return { timeboxes };
             }) 
         }
-        handleCreate = (createdTimebox) => {
-            this.addTimebox(createdTimebox);
+        handleConfirm = () => {
+            if (this.state.isEditableTimebox) {
+                const t = {id: this.state.idEditingTimebox, title: this.state.titleEditing, totalTimeInMinutes: this.state.totalTimeInMinutesEditing}
+                console.log("handleConfirm update: ", t)
+                this.updateTimebox(this.state.idEditingTimebox, t)
+            }
+            else{
+                this.addTimebox({id: uuid.v4(), title: this.state.titleEditing, totalTimeInMinutes: this.state.totalTimeInMinutesEditing});
+            }
+
+            this.setState({isEditableTimebox: false });
+            this.setState({idEditingTimebox: null });
+            this.setState({titleEditing: "" });
+            this.setState({totalTimeInMinutesEditing: "" });
+        }
+        handleCancel = () => {
+            this.setState({isEditableTimebox: false });
+            this.setState({idEditingTimebox: null });
+            this.setState({titleEditing: "" });
+            this.setState({totalTimeInMinutesEditing: "" });
+        }
+        handleStartEdit = (timebox) => {
+            console.log("handleStartEdit ", timebox.id, timebox.title, timebox.totalTimeInMinutes);
+            this.setState({isEditableTimebox: true });
+            this.setState({idEditingTimebox: timebox.id });
+            this.setState({titleEditing: timebox.title });
+            this.setState({totalTimeInMinutesEditing: timebox.totalTimeInMinutes });
+        }
+        handleTitleChanged = (event) => {
+            this.setState({titleEditing: event.target.value });
+        }
+        handleTotalTimeInMinutesChanged = (event) => {
+            this.setState({totalTimeInMinutesEditing: event.target.value });
         }
         render () {
             return (            
                 <>
-                <TimeboxCreator onCreate={this.handleCreate} />
+                {console.log("TimeboxList.render ", this.state.isEditableTimebox, this.state.idEditingTimebox, this.state.titleEditing, this.state.totalTimeInMinutesEditing)}
+                <TimeboxEditor 
+                    onConfirm={this.handleConfirm}
+                    onCancel={this.handleCancel}
+                    title={this.state.titleEditing}
+                    totalTimeInMinutes={this.state.totalTimeInMinutesEditing}
+                    onTitleChanged={()=> this.handleTitleChanged(event)}
+                    onTotalTimeInMinutesChanged={()=> this.handleTotalTimeInMinutesChanged(event)}
+                    isEdit={this.state.isEditableTimebox}
+                />
                 { this.state.timeboxes.map((timebox, index) => 
-                    <Timebox 
+                    <Timebox
+                        isEdit={this.state.isEditableTimebox} 
                         key={timebox.id}
                         title={timebox.title} totalTimeInMinutes={timebox.totalTimeInMinutes}
                         onDelete={() => this.removeTimebox(index)}
-                        onEdit={() => this.updateTimebox(index, {...timebox, title: "Updated timebox" })}
+                        onStartEdit={() => this.handleStartEdit(timebox)}
                      />
                 )}
                 </>
